@@ -1,20 +1,31 @@
 # GradePlugin
 
-Plugin Minecraft Paper 1.21 - Système de grades personnalisables
+Plugin Paper 1.21 (compatible multi-serveurs derrière BungeeCord) pour gérer des grades personnalisables, achetables sur ton site web ou obtenus via des competitions. Système de permissions autonome (pas besoin de LuckPerms).
 
 ## Description
 
 GradePlugin est un plugin Minecraft permettant la gestion de grades personnalisés sur votre serveur. Les joueurs peuvent acheter des grades via votre site web ou les obtenir via des competitions.
 
-### Fonctionnalités
+### Caractéristiques principales
 
-- **Gestion des grades** : Création, suppression et modification de grades
-- **Achat via site web** : Integration possible avec votre site pour l'achat de grades
+- **Base de données SQLite** : Pas besoin d'installer MySQL ! SQLite stocke les données dans un fichier local
+- **Multi-serveurs** : Partagez les grades entre plusieurs serveurs Paper sur la même machine
+- **Achat via site web** : Intégration possible avec votre site pour l'achat de grades
 - **Competitions** : Attribution de grades suite à des competitions
-- **Prefixes personnalisables** : Chaque grade dispose d'un prefixe visible dans le chat
+- **Prefixes personnalisables** : Chaque grade dispose d'un préfixe visible dans le chat
 - **Expiration automatique** : Les grades temporaires expirent automatiquement
 - **Synchronisation** : Synchronisation des grades entre le serveur et la base de données
-- **Base de données MySQL** : Stockage persistant de tous les grades
+- **Mode WAL** : SQLite configuré pour une utilisation multi-serveurs
+
+### Architecture
+
+Le plugin utilise SQLite avec le mode WAL, permettant à plusieurs serveurs Paper de lire le fichier de base de données en même temps qu'un autre écrit dessus, sans se bloquer mutuellement.
+
+```
+[ Site web ]  --écrit-->  [ Base SQLite partagée ]  <--lit--  [ Paper #1 : survie   ]
+                                                     <--lit--  [ Paper #2 : skyblock ]
+                                                     <--lit--  [ Paper #3 : ...      ]
+```
 
 ### Commandes
 
@@ -30,27 +41,33 @@ GradePlugin est un plugin Minecraft permettant la gestion de grades personnalis�
 
 - `gradeplugin.admin` - Acces aux commandes d'administration (par defaut: op)
 
-### Configuration
-
-Le plugin nécessite une base de données MySQL. Configurez les informations de connexion dans `config.yml`.
-
 ### Installation
 
-1. Telechargez la dernière version depuis la page des releases
+1. Téléchargez la dernière version depuis la page des releases
 2. Placez le fichier `GradePlugin.jar` dans le dossier `plugins` de votre serveur
-3. Redemarrez le serveur
-4. Configurez la connexion MySQL dans `plugins/GradePlugin/config.yml`
+3. Redémarrez le serveur
+4. Le fichier de base de données `grades.db` sera créé automatiquement dans `plugins/GradePlugin/`
 
-### Version
+Pour partager les grades entre plusieurs serveurs Paper sur la même machine, configurez le même chemin de base de données dans `config.yml` sur chaque serveur.
 
-**Version actuelle : 1.0.0**
+### Configuration
+
+Le fichier `config.yml` permet de configurer :
+- Le chemin de la base de données SQLite
+- Le format du chat
+- L'activation du tab-list coloré
+- Les intervalles de synchronisation
+- Les grades par défaut
 
 ### Requirements
 
 - Minecraft Paper 1.21+
 - Java 21
-- MySQL 8.0+
+
+### Version
+
+**Version actuelle : 1.0.0**
 
 ### License
 
-Plugin developpé par Tututte
+Plugin développé par Tututte

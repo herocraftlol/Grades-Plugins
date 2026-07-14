@@ -1,0 +1,70 @@
+# =========================================================
+#  GradePlugin - configuration
+#  A dupliquer sur CHAQUE serveur Paper derriere le BungeeCord
+#  (les serveurs partagent la meme base de donnees)
+# =========================================================
+
+mysql:
+  # Ce bloc n'est plus utilise dans cette version SQLite du plugin.
+  # Il est laisse ici pour memoire si tu reviens un jour a MySQL.
+  host: "127.0.0.1"
+  port: 3306
+  database: "grades_db"
+  user: "grades_user"
+  password: "CHANGE_ME"
+  pool-size: 6
+  useSSL: false
+
+sqlite:
+  # Chemin du fichier de base de donnees (cree automatiquement s'il n'existe pas).
+  # Par defaut, propre a CE serveur uniquement.
+  #
+  # Pour PARTAGER les grades entre plusieurs serveurs Paper (survie, skyblock...)
+  # derriere ton BungeeCord, ils doivent TOUS pointer vers le MEME fichier.
+  # Cela ne marche que si tous ces serveurs tournent sur la MEME machine
+  # (ou un meme volume/partage reseau) : mets alors un chemin absolu commun,
+  # par exemple :
+  #   path: "C:/minecraft/shared-data/grades.db"      (Windows)
+  #   path: "/home/minecraft/shared-data/grades.db"   (Linux)
+  path: "plugins/GradePlugin/grades.db"
+
+# Intervalle (en secondes) auquel le plugin verifie les nouvelles
+# attributions de grades faites depuis le site web (table pending_sync)
+sync-interval-seconds: 10
+
+# Intervalle (en secondes) auquel le plugin verifie les grades expires
+expiration-check-interval-seconds: 60
+
+# Active le formatage automatique du chat (prefixe/suffixe/couleur du grade)
+# Mettre a false si tu utilises deja un autre plugin de chat (EssentialsChat, etc.)
+handle-chat-format: true
+chat-format: "%prefix%%player%%suffix% &7: &f%message%"
+
+# Active le renommage du joueur dans le tab-list avec le prefixe du grade
+handle-tablist: true
+
+# Grades par defaut, crees automatiquement en base au premier demarrage
+# si la table "grades" est vide. Tu peux ensuite tout gerer via
+# /gradeadmin create ou directement en base / depuis ton site.
+default-grades:
+  vip:
+    display-name: "VIP"
+    prefix: "&a[VIP] &f"
+    suffix: ""
+    color: "&a"
+    priority: 1
+    permissions:
+      - "gradeplugin.tag.vip"
+      - "essentials.fly"
+    price: 4.99
+  legend:
+    display-name: "Legende"
+    prefix: "&6[LEGENDE] &f"
+    suffix: ""
+    color: "&6"
+    priority: 5
+    permissions:
+      - "gradeplugin.tag.legend"
+      - "essentials.fly"
+      - "essentials.heal"
+    price: null

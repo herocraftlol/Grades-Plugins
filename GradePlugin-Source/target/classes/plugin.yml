@@ -1,0 +1,20 @@
+name: GradePlugin
+version: '${project.version}'
+main: com.tututte.gradeplugin.GradePlugin
+api-version: '1.21'
+author: Tututte
+description: Systeme de grades personnalisables (achat site web / competitions)
+
+commands:
+  grade:
+    description: Affiche vos grades ou la liste des grades disponibles
+    usage: /grade [joueur]
+  gradeadmin:
+    description: Commandes d'administration des grades
+    usage: /gradeadmin <give|remove|reload|list|create>
+    permission: gradeplugin.admin
+
+permissions:
+  gradeplugin.admin:
+    description: Acces aux commandes d'administration des grades
+    default: op

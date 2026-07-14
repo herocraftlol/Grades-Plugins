@@ -1,0 +1,12 @@
+com/tututte/gradeplugin/listeners/PlayerConnectionListener.class
+com/tututte/gradeplugin/commands/GradeAdminCommand.class
+com/tututte/gradeplugin/database/DatabaseManager.class
+com/tututte/gradeplugin/tasks/SyncTask.class
+com/tututte/gradeplugin/commands/GradeCommand.class
+com/tututte/gradeplugin/grade/Grade.class
+com/tututte/gradeplugin/tasks/ExpirationTask.class
+com/tututte/gradeplugin/grade/PlayerGradeManager.class
+com/tututte/gradeplugin/grade/GradeManager.class
+com/tututte/gradeplugin/listeners/ChatFormatListener.class
+com/tututte/gradeplugin/GradePlugin.class
+com/tututte/gradeplugin/grade/PlayerGrade.class

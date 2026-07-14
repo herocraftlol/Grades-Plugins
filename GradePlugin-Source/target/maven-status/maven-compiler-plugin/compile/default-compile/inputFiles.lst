@@ -1,0 +1,12 @@
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/GradePlugin.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/commands/GradeAdminCommand.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/commands/GradeCommand.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/database/DatabaseManager.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/grade/Grade.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/grade/GradeManager.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/grade/PlayerGrade.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/grade/PlayerGradeManager.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/listeners/ChatFormatListener.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/listeners/PlayerConnectionListener.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/tasks/ExpirationTask.java
+/workspace/GradePlugin-integration/src/main/java/com/tututte/gradeplugin/tasks/SyncTask.java
