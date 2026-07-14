@@ -23,8 +23,8 @@
                   <shadedPattern>com.tututte.gradeplugin.libs.hikari</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.sqlite</pattern>
-                  <shadedPattern>com.tututte.gradeplugin.libs.sqlite</shadedPattern>
+                  <pattern>com.mysql</pattern>
+                  <shadedPattern>com.tututte.gradeplugin.libs.mysql</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

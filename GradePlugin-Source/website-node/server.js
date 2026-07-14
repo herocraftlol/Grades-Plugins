@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { ensureTables } = require('./db');
 
 const shopRoutes = require('./routes/shop');
 const webhookRoutes = require('./routes/webhook');
@@ -31,6 +32,14 @@ app.get('/shop/cancel', (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Serveur d'integration GradePlugin demarre sur le port ${port}`);
-});
+
+ensureTables()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Serveur d'integration GradePlugin demarre sur le port ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Impossible de se connecter/initialiser la base MySQL :', err.message);
+    process.exit(1);
+  });

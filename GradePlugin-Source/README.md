@@ -34,8 +34,9 @@ Copie ce jar dans le dossier `plugins/` de **chaque** serveur Paper.
 
 ## Installation
 
-1. Cree la base de donnees et les tables : execute `website/schema.sql` sur
-   ton serveur MySQL.
+1. Cree la base de donnees MySQL (voir `schema.sql` pour la structure de
+   reference — les tables sont de toute facon creees automatiquement au
+   premier demarrage du plugin ou du micro-service si elles n'existent pas).
 2. Copie `GradePlugin.jar` dans `plugins/` sur chaque serveur Paper, demarre
    une fois pour generer `config.yml`.
 3. Renseigne les identifiants MySQL dans `plugins/GradePlugin/config.yml`
@@ -46,16 +47,15 @@ Copie ce jar dans le dossier `plugins/` de **chaque** serveur Paper.
 
 ## Integration avec le site web
 
-- **`website-node/`** — integration Node.js/Express prete a l'emploi :
-  boutique avec paiement Stripe + panel admin pour les competitions. Voir
-  `website-node/README.md` pour l'installation.
-- **`website/grant_grade.php`** — exemple equivalent en PHP si besoin.
+**`website-node/`** — integration Node.js/Express prete a l'emploi :
+boutique avec paiement Stripe + panel admin pour les competitions. Voir
+`website-node/README.md` pour l'installation complete.
 
-Dans les deux cas, le principe est le meme : une fonction `grantGrade()`
-insere le grade dans `player_grades` et previent le plugin via
-`pending_sync`, qui l'applique en jeu en quelques secondes sans
-redemarrage. Tu peux recuperer l'UUID d'un joueur via l'API Mojang avant
-l'insertion : `https://api.mojang.com/users/profiles/minecraft/{pseudo}`.
+Le principe : une fonction `grantGrade()` insere le grade dans
+`player_grades` et previent le plugin via `pending_sync`, qui l'applique en
+jeu en quelques secondes sans redemarrage. L'UUID d'un joueur est recupere
+via l'API Mojang avant l'insertion :
+`https://api.mojang.com/users/profiles/minecraft/{pseudo}`.
 
 ## Commandes en jeu
 

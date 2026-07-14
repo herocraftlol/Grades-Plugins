@@ -5,7 +5,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -22,40 +21,33 @@ public class DatabaseManager {
     public void connect() {
         FileConfiguration cfg = plugin.getConfig();
 
-        // Chemin du fichier SQLite. Par defaut : plugins/GradePlugin/grades.db
-        // (propre a CE serveur). Pour partager les grades entre plusieurs
-        // serveurs Paper sur la MEME machine, mets le meme chemin absolu
-        // (ex: un dossier partage) dans "sqlite.path" sur chaque serveur.
-        String path = cfg.getString("sqlite.path", "plugins/GradePlugin/grades.db");
-        File dbFile = new File(path);
-        File parent = dbFile.getParentFile();
-        if (parent != null && !parent.exists()) {
-            parent.mkdirs();
-        }
+        // Une seule base MySQL partagee entre TOUS tes serveurs Paper et ton
+        // site web. Renseigne les memes identifiants sur chaque serveur.
+        String host = cfg.getString("mysql.host", "127.0.0.1");
+        int port = cfg.getInt("mysql.port", 3306);
+        String database = cfg.getString("mysql.database", "grades_db");
+        String user = cfg.getString("mysql.user", "grades_user");
+        String password = cfg.getString("mysql.password", "");
+        int poolSize = cfg.getInt("mysql.pool-size", 6);
+        boolean useSSL = cfg.getBoolean("mysql.useSSL", false);
 
-        String jdbcUrl = "jdbc:sqlite:" + dbFile.getAbsolutePath();
+        String jdbcUrl = String.format(
+                "jdbc:mysql://%s:%d/%s?useSSL=%s&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8mb4",
+                host, port, database, useSSL
+        );
 
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(jdbcUrl);
-        // SQLite = un seul fichier verrouille en ecriture : une seule
-        // connexion active suffit et evite les erreurs "database is locked".
-        hikariConfig.setMaximumPoolSize(1);
+        hikariConfig.setUsername(user);
+        hikariConfig.setPassword(password);
+        hikariConfig.setMaximumPoolSize(poolSize);
         hikariConfig.setPoolName("GradePlugin-Pool");
-        hikariConfig.setDriverClassName("org.sqlite.JDBC");
-        // Autorise SQLite a patienter (au lieu d'echouer immediatement) si un
-        // autre serveur Paper ecrit au meme moment sur le meme fichier.
-        hikariConfig.addDataSourceProperty("busy_timeout", "5000");
+        hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        // Evite de garder des connexions mortes si MySQL redemarre / coupe le reseau
+        hikariConfig.setConnectionTestQuery("SELECT 1");
+        hikariConfig.setMaxLifetime(280000); // un peu moins que le wait_timeout par defaut de MySQL (28 min)
 
         this.dataSource = new HikariDataSource(hikariConfig);
-
-        // Le mode WAL permet a plusieurs serveurs Paper de LIRE le fichier en
-        // meme temps qu'un autre ECRIT dessus, sans se bloquer mutuellement.
-        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
-            stmt.execute("PRAGMA journal_mode=WAL;");
-            stmt.execute("PRAGMA busy_timeout=5000;");
-        } catch (SQLException e) {
-            plugin.getLogger().warning("Impossible d'activer le mode WAL SQLite : " + e.getMessage());
-        }
 
         createTables();
     }
@@ -63,42 +55,42 @@ public class DatabaseManager {
     private void createTables() {
         String grades = """
             CREATE TABLE IF NOT EXISTS grades (
-                id TEXT PRIMARY KEY,
-                display_name TEXT NOT NULL,
-                prefix TEXT DEFAULT '',
-                suffix TEXT DEFAULT '',
-                color TEXT DEFAULT '&f',
-                priority INTEGER DEFAULT 0,
+                id VARCHAR(64) PRIMARY KEY,
+                display_name VARCHAR(64) NOT NULL,
+                prefix VARCHAR(64) DEFAULT '',
+                suffix VARCHAR(64) DEFAULT '',
+                color VARCHAR(8) DEFAULT '&f',
+                priority INT DEFAULT 0,
                 permissions TEXT,
-                price REAL DEFAULT NULL,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )""";
+                price DECIMAL(10,2) DEFAULT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""";
 
         String playerGrades = """
             CREATE TABLE IF NOT EXISTS player_grades (
-                uuid TEXT NOT NULL,
-                grade_id TEXT NOT NULL,
-                source TEXT DEFAULT 'admin',
+                uuid VARCHAR(36) NOT NULL,
+                grade_id VARCHAR(64) NOT NULL,
+                source VARCHAR(32) DEFAULT 'admin',
                 granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                expires_at TIMESTAMP NULL,
-                active INTEGER DEFAULT 1,
+                expires_at TIMESTAMP NULL DEFAULT NULL,
+                active TINYINT(1) DEFAULT 1,
                 PRIMARY KEY (uuid, grade_id)
-            )""";
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""";
 
         String pendingSync = """
             CREATE TABLE IF NOT EXISTS pending_sync (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                uuid TEXT NOT NULL,
-                processed INTEGER DEFAULT 0,
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                uuid VARCHAR(36) NOT NULL,
+                processed TINYINT(1) DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )""";
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""";
 
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
             stmt.execute(grades);
             stmt.execute(playerGrades);
             stmt.execute(pendingSync);
         } catch (SQLException e) {
-            plugin.getLogger().severe("Impossible de creer les tables SQLite : " + e.getMessage());
+            plugin.getLogger().severe("Impossible de creer les tables MySQL : " + e.getMessage());
         }
     }
 

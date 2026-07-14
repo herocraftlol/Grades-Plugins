@@ -8,23 +8,23 @@ GradePlugin est un plugin Minecraft permettant la gestion de grades personnalis�
 
 ### Caractéristiques principales
 
-- **Base de données SQLite** : Pas besoin d'installer MySQL ! SQLite stocke les données dans un fichier local
-- **Multi-serveurs** : Partagez les grades entre plusieurs serveurs Paper sur la même machine avec le mode WAL
+- **Base de données MySQL** : Une seule base partagée entre votre site web et tous vos serveurs Paper
+- **Multi-serveurs** : Partagez les grades entre plusieurs serveurs Paper (survie, skyblock, etc.)
 - **Achat via site web** : Intégration possible avec votre site pour l'achat de grades
 - **Competitions** : Attribution de grades suite à des competitions
 - **Prefixes personnalisables** : Chaque grade dispose d'un préfixe visible dans le chat
 - **Expiration automatique** : Les grades temporaires expirent automatiquement
-- **Synchronisation** : Synchronisation des grades entre le serveur et la base de données
-- **Mode WAL** : SQLite configuré pour une utilisation multi-serveurs
+- **Synchronisation** : Le plugin lit `pending_sync` toutes les 10 secondes et applique les changements sans redémarrage
+- **HikariCP** : Pool de connexions optimisé pour MySQL
 
 ### Architecture
 
-Le plugin utilise SQLite avec le mode WAL, permettant à plusieurs serveurs Paper de lire le fichier de base de données en même temps qu'un autre écrit dessus, sans se bloquer mutuellement.
+Une seule base MySQL partagée entre votre site et tous vos serveurs Paper. Le plugin lit `pending_sync` toutes les 10 secondes et applique les changements en jeu.
 
 ```
-[ Site web ]  --écrit-->  [ Base SQLite partagée ]  <--lit--  [ Paper #1 : survie   ]
-                                                     <--lit--  [ Paper #2 : skyblock ]
-                                                     <--lit--  [ Paper #3 : ...      ]
+[ Site web (PHP) ]  --écrit-->  [ MySQL partagé ]  <--lit--  [ Paper #1 : survie   ]
+                                                    <--lit--  [ Paper #2 : skyblock ]
+                                                    <--lit--  [ Paper #3 : ...      ]
 ```
 
 ### Commandes
@@ -45,23 +45,22 @@ Le plugin utilise SQLite avec le mode WAL, permettant à plusieurs serveurs Pape
 
 ### Installation
 
-1. Téléchargez la dernière version depuis la page des releases
-2. Placez le fichier `GradePlugin.jar` dans le dossier `plugins` de votre serveur
-3. Redémarrez le serveur
-4. Le fichier de base de données `grades.db` sera créé automatiquement dans `plugins/GradePlugin/`
-
-Pour partager les grades entre plusieurs serveurs Paper sur la même machine, configurez le même chemin de base de données dans `config.yml` sur chaque serveur.
+1. Créez la base de données MySQL et exécutez `schema.sql` (optionnel - les tables sont créées automatiquement)
+2. Placez le fichier `GradePlugin.jar` dans le dossier `plugins` de chaque serveur Paper
+3. Configurez les identifiants MySQL dans `plugins/GradePlugin/config.yml`
+4. Redémarrez les serveurs
 
 ### Intégration avec le site web
 
 - **`website-node/`** - Intégration Node.js/Express prête à l'emploi : boutique avec paiement Stripe + panel admin pour les competitions
 
-Le principe est simple : une fonction `grantGrade()` insere le grade dans la base SQLite et previent le plugin via `pending_sync`, qui l'applique en jeu en quelques secondes sans redemarrage.
+Le principe : une fonction `grantGrade()` insere le grade dans la base MySQL et previent le plugin via `pending_sync`, qui l'applique en jeu en quelques secondes sans redemarrage.
 
 ### Configuration
 
 Le fichier `config.yml` permet de configurer :
-- Le chemin de la base de données SQLite
+- Les identifiants de connexion MySQL (host, port, database, user, password)
+- La taille du pool de connexions
 - Le format du chat
 - L'activation du tab-list coloré
 - Les intervalles de synchronisation
@@ -71,6 +70,7 @@ Le fichier `config.yml` permet de configurer :
 
 - Minecraft Paper 1.21+
 - Java 21
+- MySQL 8.0+
 
 ### Version
 

@@ -92,14 +92,14 @@ public class GradeManager {
         String sql = """
             INSERT INTO grades (id, display_name, prefix, suffix, color, priority, permissions, price)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(id) DO UPDATE SET
-                display_name = excluded.display_name,
-                prefix = excluded.prefix,
-                suffix = excluded.suffix,
-                color = excluded.color,
-                priority = excluded.priority,
-                permissions = excluded.permissions,
-                price = excluded.price
+            ON DUPLICATE KEY UPDATE
+                display_name = VALUES(display_name),
+                prefix = VALUES(prefix),
+                suffix = VALUES(suffix),
+                color = VALUES(color),
+                priority = VALUES(priority),
+                permissions = VALUES(permissions),
+                price = VALUES(price)
             """;
 
         try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {

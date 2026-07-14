@@ -10,21 +10,21 @@ framework different (Next.js, Fastify, NestJS...), reprends la logique de
 cd website-node
 npm install
 cp .env.example .env
-# DB_PATH doit pointer vers EXACTEMENT le meme fichier que "sqlite.path"
-# dans le config.yml de chaque serveur Paper GradePlugin
-# et ta cle Stripe si tu utilises Stripe
+# Renseigne DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD : la MEME base
+# MySQL que celle configuree dans le config.yml de chaque serveur Paper
+# GradePlugin, et ta cle Stripe si tu utilises Stripe.
 npm start
 ```
 
-⚠️ **SQLite = un fichier, pas un serveur.** Ce service et tous tes serveurs
-Paper doivent tourner sur la **meme machine** (ou un volume/dossier reseau
-partage) et pointer vers le **meme chemin de fichier** pour que les grades
-soient bien synchronises entre eux.
+MySQL etant un vrai serveur reseau (contrairement a un fichier SQLite),
+ce micro-service et tes serveurs Paper n'ont pas besoin d'etre sur la
+meme machine : il suffit qu'ils puissent tous joindre le meme hote MySQL
+avec les memes identifiants.
 
 ## Fichiers
 
-- **db.js** — ouvre le fichier SQLite (better-sqlite3), partage la meme base
-  que le plugin.
+- **db.js** — pool de connexions MySQL (mysql2), partage la meme base que
+  le plugin.
 - **grades.js** — logique metier reutilisable, independante d'Express :
   - `getUuidFromUsername(pseudo)` : resout un pseudo Minecraft en UUID via
     l'API Mojang.

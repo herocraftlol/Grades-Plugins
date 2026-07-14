@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const db = require('./db');
+const { pool } = require('./db');
 
 /**
  * Recupere l'UUID (avec tirets) d'un joueur a partir de son pseudo.
@@ -35,28 +35,40 @@ async function grantGrade(uuid, gradeId, source, durationDays = null) {
     expiresAt = d.toISOString().slice(0, 19).replace('T', ' ');
   }
 
-  const grant = db.transaction(() => {
-    db.prepare(`
-      INSERT INTO player_grades (uuid, grade_id, source, expires_at, active)
-      VALUES (?, ?, ?, ?, 1)
-      ON CONFLICT(uuid, grade_id) DO UPDATE SET
-        source = excluded.source,
-        expires_at = excluded.expires_at,
-        active = 1,
-        granted_at = CURRENT_TIMESTAMP
-    `).run(uuid, gradeId, source, expiresAt);
+  // Vraie transaction MySQL : les deux ecritures (grade + notification au
+  // plugin) doivent reussir ensemble, sinon on annule tout.
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
 
-    db.prepare(`INSERT INTO pending_sync (uuid) VALUES (?)`).run(uuid);
-  });
+    await conn.execute(
+      `INSERT INTO player_grades (uuid, grade_id, source, expires_at, active)
+       VALUES (?, ?, ?, ?, 1)
+       ON DUPLICATE KEY UPDATE
+         source = VALUES(source),
+         expires_at = VALUES(expires_at),
+         active = 1,
+         granted_at = CURRENT_TIMESTAMP`,
+      [uuid, gradeId, source, expiresAt]
+    );
 
-  grant();
+    await conn.execute(`INSERT INTO pending_sync (uuid) VALUES (?)`, [uuid]);
+
+    await conn.commit();
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 }
 
 /** Liste les grades disponibles (pour affichage boutique). */
 async function listGrades() {
-  return db.prepare(
+  const [rows] = await pool.query(
     `SELECT id, display_name, prefix, color, priority, price FROM grades ORDER BY priority DESC`
-  ).all();
+  );
+  return rows;
 }
 
 module.exports = { getUuidFromUsername, grantGrade, listGrades };

@@ -87,9 +87,9 @@ public class PlayerGradeManager {
         String sql = """
             INSERT INTO player_grades (uuid, grade_id, source, expires_at, active)
             VALUES (?, ?, ?, ?, 1)
-            ON CONFLICT(uuid, grade_id) DO UPDATE SET
-                source = excluded.source,
-                expires_at = excluded.expires_at,
+            ON DUPLICATE KEY UPDATE
+                source = VALUES(source),
+                expires_at = VALUES(expires_at),
                 active = 1,
                 granted_at = CURRENT_TIMESTAMP
             """;
