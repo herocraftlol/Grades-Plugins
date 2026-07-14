@@ -1,6 +1,6 @@
 # GradePlugin
 
-Plugin Paper 1.21 (compatible multi-serveurs derrière BungeeCord) pour gérer des grades personnalisables, achetables sur ton site web ou obtenus via des competitions. Système de permissions autonome (pas besoin de LuckPerms).
+Plugin Paper 1.21 (multi-serveurs derrière BungeeCord) pour gérer des grades personnalisables, achetables sur votre site web ou obtenus via des competitions. Système de permissions autonome (pas besoin de LuckPerms).
 
 ## Description
 
@@ -9,7 +9,7 @@ GradePlugin est un plugin Minecraft permettant la gestion de grades personnalis�
 ### Caractéristiques principales
 
 - **Base de données SQLite** : Pas besoin d'installer MySQL ! SQLite stocke les données dans un fichier local
-- **Multi-serveurs** : Partagez les grades entre plusieurs serveurs Paper sur la même machine
+- **Multi-serveurs** : Partagez les grades entre plusieurs serveurs Paper sur la même machine avec le mode WAL
 - **Achat via site web** : Intégration possible avec votre site pour l'achat de grades
 - **Competitions** : Attribution de grades suite à des competitions
 - **Prefixes personnalisables** : Chaque grade dispose d'un préfixe visible dans le chat
@@ -30,11 +30,13 @@ Le plugin utilise SQLite avec le mode WAL, permettant à plusieurs serveurs Pape
 ### Commandes
 
 - `/grade` - Affiche vos grades ou la liste des grades disponibles
+- `/grade <joueur>` - Affiche les grades d'un joueur
+- `/grade liste` - Liste tous les grades configurés et leur prix
 - `/gradeadmin` - Commandes d'administration des grades
-  - `/gradeadmin give <joueur> <grade> [duree_jours]` - Attribuer un grade
+  - `/gradeadmin give <joueur> <grade> [duree_jours]` - Attribuer un grade (sans durée = permanent)
   - `/gradeadmin remove <joueur> <grade>` - Retirer un grade
   - `/gradeadmin reload` - Recharger la configuration
-  - `/gradeadmin create <id> <nom> <couleur> <priorite> <prefixe>` - Creer un grade
+  - `/gradeadmin create <id> <nom> <couleur> <priorite> <prefixe> [permissions] [prix]` - Créer un grade
   - `/gradeadmin list` - Lister tous les grades
 
 ### Permissions
@@ -49,6 +51,12 @@ Le plugin utilise SQLite avec le mode WAL, permettant à plusieurs serveurs Pape
 4. Le fichier de base de données `grades.db` sera créé automatiquement dans `plugins/GradePlugin/`
 
 Pour partager les grades entre plusieurs serveurs Paper sur la même machine, configurez le même chemin de base de données dans `config.yml` sur chaque serveur.
+
+### Intégration avec le site web
+
+- **`website-node/`** - Intégration Node.js/Express prête à l'emploi : boutique avec paiement Stripe + panel admin pour les competitions
+
+Le principe est simple : une fonction `grantGrade()` insere le grade dans la base SQLite et previent le plugin via `pending_sync`, qui l'applique en jeu en quelques secondes sans redemarrage.
 
 ### Configuration
 

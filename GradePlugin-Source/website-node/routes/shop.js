@@ -56,8 +56,12 @@ router.post('/checkout', async (req, res) => {
         grade_id: grade.id,
         // duration_days: "30" // decommente si le grade est temporaire
       },
-      success_url: `${process.env.SITE_URL || 'http://localhost:3000'}/shop/success`,
-      cancel_url: `${process.env.SITE_URL || 'http://localhost:3000'}/shop/cancel`,
+      // SHOP_PUBLIC_URL = l'URL PUBLIQUE (via ton reverse-proxy) de ce
+      // micro-service, ex: https://monsite.fr/boutique — PAS l'URL interne
+      // (http://127.0.0.1:3000) puisque c'est le navigateur du client, et
+      // Stripe, qui doivent pouvoir atteindre cette URL depuis l'exterieur.
+      success_url: `${process.env.SHOP_PUBLIC_URL || 'http://localhost:3000'}/shop/success`,
+      cancel_url: `${process.env.SHOP_PUBLIC_URL || 'http://localhost:3000'}/shop/cancel`,
     });
 
     res.json({ url: session.url });

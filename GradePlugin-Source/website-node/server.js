@@ -8,9 +8,9 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
-// Autorise ton site (index.html) a appeler cette API depuis un autre
-// port/domaine. Restreins ORIGIN dans .env en production
-// (ex: ORIGIN=https://tonsite.com) plutot que de laisser "*".
+// Meme domaine via reverse-proxy (ex: monsite.fr/boutique) => pas de CORS
+// cross-origin necessaire en realite, mais on garde ce middleware par
+// securite/portabilite (utile si tu changes d'archi plus tard).
 app.use(cors({ origin: process.env.ORIGIN || '*' }));
 
 // IMPORTANT : le webhook Stripe doit etre monte AVANT tout express.json()
