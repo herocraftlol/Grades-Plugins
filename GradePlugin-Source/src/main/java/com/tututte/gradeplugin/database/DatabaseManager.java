@@ -32,7 +32,7 @@ public class DatabaseManager {
         boolean useSSL = cfg.getBoolean("mysql.useSSL", false);
 
         String jdbcUrl = String.format(
-                "jdbc:mysql://%s:%d/%s?useSSL=%s&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8mb4",
+                "jdbc:mysql://%s:%d/%s?useSSL=%s&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true&connectionCollation=utf8mb4_general_ci",
                 host, port, database, useSSL
         );
 
