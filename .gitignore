@@ -1,0 +1,3 @@
+GradePlugin-Source/target/
+*.class
+dependency-reduced-pom.xml
