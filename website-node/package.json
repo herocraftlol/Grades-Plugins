@@ -1,0 +1,18 @@
+{
+  "name": "gradeplugin-web-integration",
+  "version": "1.0.0",
+  "description": "Integration Node.js/Express pour attribuer des grades GradePlugin (boutique + admin competitions)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mysql2": "^3.11.0",
+    "dotenv": "^16.4.5",
+    "stripe": "^16.2.0",
+    "node-fetch": "^2.7.0",
+    "cors": "^2.8.5"
+  }
+}

@@ -33,6 +33,16 @@ chat-format: "%prefix%%player%%suffix% &7: &f%message%"
 # Active le renommage du joueur dans le tab-list avec le prefixe du grade
 handle-tablist: true
 
+# Enregistre chaque connexion/deconnexion/kill/mort dans la table MySQL
+# "players", utilisee par le site web pour afficher skin/pseudo/stats de
+# tous les joueurs deja venus (section "Joueurs" du site).
+track-players: true
+
+# Nom de CE serveur dans le reseau (a changer sur CHAQUE serveur derriere
+# le BungeeCord : "survie-1", "creatif", "lobby", etc.). Sert uniquement a
+# l'affichage sur le site ("vu sur : survie-1").
+server-name: "survie-1"
+
 # Grades par defaut, crees automatiquement en base au premier demarrage
 # si la table "grades" est vide. Tu peux ensuite tout gerer via
 # /gradeadmin create ou directement en base / depuis ton site.

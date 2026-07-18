@@ -7,6 +7,7 @@ import com.tututte.gradeplugin.grade.GradeManager;
 import com.tututte.gradeplugin.grade.PlayerGradeManager;
 import com.tututte.gradeplugin.listeners.ChatFormatListener;
 import com.tututte.gradeplugin.listeners.PlayerConnectionListener;
+import com.tututte.gradeplugin.listeners.PlayerTrackingListener;
 import com.tututte.gradeplugin.tasks.ExpirationTask;
 import com.tututte.gradeplugin.tasks.SyncTask;
 import org.bukkit.Bukkit;
@@ -59,6 +60,11 @@ public class GradePlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerConnectionListener(this, playerGradeManager), this);
         if (getConfig().getBoolean("handle-chat-format", true)) {
             Bukkit.getPluginManager().registerEvents(new ChatFormatListener(this, playerGradeManager), this);
+        }
+        if (getConfig().getBoolean("track-players", true)) {
+            String serverName = getConfig().getString("server-name", "serveur");
+            Bukkit.getPluginManager().registerEvents(
+                    new PlayerTrackingListener(this, databaseManager, serverName), this);
         }
     }
 
