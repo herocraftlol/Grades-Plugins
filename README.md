@@ -1,25 +1,18 @@
 # GradePlugin
 
-Plugin Paper 1.21 (multi-serveurs derrière BungeeCord) pour gérer des grades personnalisables, achetables sur votre site web ou obtenus via des competitions. Système de permissions autonome (pas besoin de LuckPerms).
+Plugin Paper 1.21 (multi-serveurs derriere BungeeCord) pour gerer des grades
+personnalisables, achetables sur ton site web ou obtenables via des
+competitions. Systeme de permissions autonome (pas besoin de LuckPerms).
 
-## Description
+## Architecture
 
-GradePlugin est un plugin Minecraft permettant la gestion de grades personnalisés sur votre serveur. Les joueurs peuvent acheter des grades via votre site web ou les obtenir via des competitions.
-
-### Caractéristiques principales
-
-- **Base de données MySQL** : Une seule base partagée entre votre site web et tous vos serveurs Paper
-- **Multi-serveurs** : Partagez les grades entre plusieurs serveurs Paper (survie, skyblock, etc.)
-- **Achat via site web** : Intégration possible avec votre site pour l'achat de grades
-- **Competitions** : Attribution de grades suite à des competitions
-- **Prefixes personnalisables** : Chaque grade dispose d'un préfixe visible dans le chat
-- **Expiration automatique** : Les grades temporaires expirent automatiquement
-- **Synchronisation** : Le plugin lit `pending_sync` toutes les 10 secondes et applique les changements sans redémarrage
-- **HikariCP** : Pool de connexions optimisé pour MySQL
-
-### Architecture
-
-Une seule base MySQL partagée entre votre site et tous vos serveurs Paper. Le plugin lit `pending_sync` toutes les 10 secondes et applique les changements en jeu.
+- **Une seule base MySQL partagee** entre ton site et tous tes serveurs Paper.
+- Le plugin **GradePlugin est installe sur chaque serveur** (survie, skyblock...).
+  Comme ils lisent tous la meme base, un grade attribue est actif partout.
+- Ton site web ecrit directement dans la base (table `player_grades` +
+  `pending_sync`). Le plugin lit `pending_sync` toutes les
+  `sync-interval-seconds` (10s par defaut) et applique le changement en jeu,
+  sans avoir besoin de redemarrer le serveur.
 
 ```
 [ Site web (PHP) ]  --écrit-->  [ MySQL partagé ]  <--lit--  [ Paper #1 : survie   ]
@@ -27,55 +20,74 @@ Une seule base MySQL partagée entre votre site et tous vos serveurs Paper. Le p
                                                     <--lit--  [ Paper #3 : ...      ]
 ```
 
-### Commandes
+## Compilation
 
-- `/grade` - Affiche vos grades ou la liste des grades disponibles
-- `/grade <joueur>` - Affiche les grades d'un joueur
-- `/grade liste` - Liste tous les grades configurés et leur prix
-- `/gradeadmin` - Commandes d'administration des grades
-  - `/gradeadmin give <joueur> <grade> [duree_jours]` - Attribuer un grade (sans durée = permanent)
-  - `/gradeadmin remove <joueur> <grade>` - Retirer un grade
-  - `/gradeadmin reload` - Recharger la configuration
-  - `/gradeadmin create <id> <nom> <couleur> <priorite> <prefixe> [permissions] [prix]` - Créer un grade
-  - `/gradeadmin list` - Lister tous les grades
+Ce projet n'a pas pu etre compile dans cet environnement (acces reseau
+restreint aux depots Maven/PaperMC). Pour le compiler chez toi :
 
-### Permissions
+```bash
+mvn clean package
+```
 
-- `gradeplugin.admin` - Acces aux commandes d'administration (par defaut: op)
+Le jar final sera dans `target/GradePlugin.jar`. Necessite Java 21+ et Maven.
+Copie ce jar dans le dossier `plugins/` de **chaque** serveur Paper.
 
-### Installation
+## Installation
 
-1. Créez la base de données MySQL et exécutez `schema.sql` (optionnel - les tables sont créées automatiquement)
-2. Placez le fichier `GradePlugin.jar` dans le dossier `plugins` de chaque serveur Paper
-3. Configurez les identifiants MySQL dans `plugins/GradePlugin/config.yml`
-4. Redémarrez les serveurs
+1. Cree la base de donnees MySQL (voir `schema.sql` pour la structure de
+   reference — les tables sont de toute facon creees automatiquement au
+   premier demarrage du plugin ou du micro-service si elles n'existent pas).
+2. Copie `GradePlugin.jar` dans `plugins/` sur chaque serveur Paper, demarre
+   une fois pour generer `config.yml`.
+3. Renseigne les identifiants MySQL dans `plugins/GradePlugin/config.yml`
+   (memes identifiants sur chaque serveur, meme base).
+4. Redemarre les serveurs. Les grades par defaut (`vip`, `legend`) sont crees
+   automatiquement en base au premier lancement — modifie-les ou ajoutes-en
+   via `/gradeadmin create` ou directement en SQL / depuis ton site.
 
-### Intégration avec le site web
+## Integration avec le site web
 
-- **`website-node/`** - Intégration Node.js/Express prête à l'emploi : boutique avec paiement Stripe + panel admin pour les competitions
+**`website-node/`** — integration Node.js/Express prete a l'emploi :
+boutique avec paiement Stripe + panel admin pour les competitions. Voir
+`website-node/README.md` pour l'installation complete.
 
-Le principe : une fonction `grantGrade()` insere le grade dans la base MySQL et previent le plugin via `pending_sync`, qui l'applique en jeu en quelques secondes sans redemarrage.
+Le principe : une fonction `grantGrade()` insere le grade dans
+`player_grades` et previent le plugin via `pending_sync`, qui l'applique en
+jeu en quelques secondes sans redemarrage. L'UUID d'un joueur est recupere
+via l'API Mojang avant l'insertion :
+`https://api.mojang.com/users/profiles/minecraft/{pseudo}`.
 
-### Configuration
+## Section "Joueurs" du site (skins, pseudos, stats)
 
-Le fichier `config.yml` permet de configurer :
-- Les identifiants de connexion MySQL (host, port, database, user, password)
-- La taille du pool de connexions
-- Le format du chat
-- L'activation du tab-list coloré
-- Les intervalles de synchronisation
-- Les grades par défaut
+En plus des grades, le plugin alimente maintenant une table `players` (voir
+`schema.sql`) avec, pour chaque joueur ayant déjà rejoint : pseudo, statut
+en ligne, serveur actuel, date de première/dernière connexion, temps de jeu
+et kills/morts. C'est `PlayerTrackingListener` qui écrit dans cette table à
+chaque connexion/déconnexion/mort — directement en SQL, sans appel HTTP.
 
-### Requirements
+Comme tous les serveurs Paper du réseau BungeeCord écrivent dans la même
+base, active `track-players: true` (par défaut) sur **chacun** d'eux, avec
+un `server-name` différent à chaque fois. Le site interroge ensuite un seul
+endpoint (`GET /boutique/players`, voir `website-node/routes/players.js`)
+qui couvre déjà tout le réseau.
 
-- Minecraft Paper 1.21+
-- Java 21
-- MySQL 8.0+
+Rien à installer en plus : c'est inclus dans le même `GradePlugin.jar`.
 
-### Version
+## Commandes en jeu
 
-**Version actuelle : 1.0.0**
+- `/grade` — affiche tes grades actifs.
+- `/grade <joueur>` — affiche les grades d'un joueur.
+- `/grade liste` — liste tous les grades configures et leur prix.
+- `/gradeadmin give <joueur> <grade> [jours]` — attribue un grade (sans
+  duree = permanent).
+- `/gradeadmin remove <joueur> <grade>` — retire un grade.
+- `/gradeadmin create <id> <nom> <&couleur> <priorite> <prefixe> [perms,separees,virgule] [prix]`
+- `/gradeadmin reload` — recharge la config et les grades.
+- `/gradeadmin list` — liste les grades configures.
 
-### License
+## Personnalisation
 
-Plugin développé par Tututte
+Tout se configure dans `config.yml` : format du chat, activation du
+tab-list colore, intervalles de synchronisation, grades par defaut. La
+priorite determine quel grade s'affiche/s'applique quand un joueur en a
+plusieurs (le plus eleve gagne).
